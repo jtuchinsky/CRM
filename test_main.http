@@ -23,10 +23,10 @@ POST http://127.0.0.1:8000/api/v1/contacts/
 Content-Type: application/json
 
 {
-  "first_name": "Jane",
-  "last_name": "Smith",
-  "email": "jane.smith@example.com",
-  "phone": "555-9876",
+  "first_name": "Sarah",
+  "last_name": "Johnson",
+  "email": "sarah.johnson@example.com",
+  "phone": "555-2345",
   "company": "Tech Solutions Inc"
 }
 
@@ -49,11 +49,167 @@ POST http://127.0.0.1:8000/api/v1/contacts/
 Content-Type: application/json
 
 {
-  "first_name": "John",
-  "last_name": "Doe",
-  "email": "john.doe@example.com",
-  "phone": "555-1234",
+  "first_name": "Michael",
+  "last_name": "Chen",
+  "email": "michael.chen@example.com",
+  "phone": "555-3456",
   "company": "Acme Corporation"
+}
+
+###
+
+# ========================================
+# STAFF ENDPOINTS
+# ========================================
+
+### Create a staff member
+POST http://127.0.0.1:8000/api/v1/staff/
+Content-Type: application/json
+
+{
+  "first_name": "Dr. Emily",
+  "last_name": "Williams",
+  "email": "emily.williams@clinic.com",
+  "phone": "555-7001",
+  "role": "Physician",
+  "is_active": true
+}
+
+###
+
+### List all staff
+GET http://127.0.0.1:8000/api/v1/staff/
+Accept: application/json
+
+###
+
+### List only active staff
+GET http://127.0.0.1:8000/api/v1/staff/?is_active=true
+Accept: application/json
+
+###
+
+### List staff by role
+GET http://127.0.0.1:8000/api/v1/staff/?role=Physician
+Accept: application/json
+
+###
+
+### Get specific staff member (change ID as needed)
+GET http://127.0.0.1:8000/api/v1/staff/1
+Accept: application/json
+
+###
+
+### Update staff member
+PATCH http://127.0.0.1:8000/api/v1/staff/1
+Content-Type: application/json
+
+{
+  "phone": "555-7002",
+  "is_active": true
+}
+
+###
+
+### Create another staff member
+POST http://127.0.0.1:8000/api/v1/staff/
+Content-Type: application/json
+
+{
+  "first_name": "Robert",
+  "last_name": "Martinez",
+  "email": "robert.martinez@clinic.com",
+  "phone": "555-7003",
+  "role": "Nurse Practitioner",
+  "is_active": true
+}
+
+###
+
+# ========================================
+# APPOINTMENT ENDPOINTS
+# ========================================
+
+### Create an appointment (use valid contact_id and staff_id from above)
+POST http://127.0.0.1:8000/api/v1/appointments/
+Content-Type: application/json
+
+{
+  "contact_id": 1,
+  "staff_id": 1,
+  "start_time": "2025-12-15T09:00:00",
+  "duration_minutes": 60,
+  "title": "Annual Physical Exam",
+  "description": "Routine annual checkup with lab work",
+  "location": "Exam Room 1"
+}
+
+###
+
+### List all appointments
+GET http://127.0.0.1:8000/api/v1/appointments/
+Accept: application/json
+
+###
+
+### List appointments for specific staff member
+GET http://127.0.0.1:8000/api/v1/appointments/?staff_id=1
+Accept: application/json
+
+###
+
+### List appointments for specific contact
+GET http://127.0.0.1:8000/api/v1/appointments/?contact_id=1
+Accept: application/json
+
+###
+
+### List appointments by status
+GET http://127.0.0.1:8000/api/v1/appointments/?status=scheduled
+Accept: application/json
+
+###
+
+### Get specific appointment (change ID as needed)
+GET http://127.0.0.1:8000/api/v1/appointments/1
+Accept: application/json
+
+###
+
+### Update appointment time and duration
+PATCH http://127.0.0.1:8000/api/v1/appointments/1
+Content-Type: application/json
+
+{
+  "start_time": "2025-12-15T10:00:00",
+  "duration_minutes": 90
+}
+
+###
+
+### Update appointment status
+PATCH http://127.0.0.1:8000/api/v1/appointments/1
+Content-Type: application/json
+
+{
+  "status": "confirmed"
+}
+
+###
+
+### Create another appointment
+POST http://127.0.0.1:8000/api/v1/appointments/
+Content-Type: application/json
+
+{
+  "contact_id": 2,
+  "staff_id": 1,
+  "start_time": "2025-12-15T14:00:00",
+  "duration_minutes": 30,
+  "title": "Follow-up Consultation",
+  "description": "Review test results",
+  "location": "Exam Room 2"
 }
 
 ###
