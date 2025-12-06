@@ -1,13 +1,16 @@
-from fastapi import FastAPI
+"""
+CRM Application Entry Point
 
-app = FastAPI()
+Run with: uvicorn main:app --reload
+Or with UV: uv run uvicorn main:app --reload
+"""
 
+from app import app
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+# The app instance is imported from app package
+# This allows running: uvicorn main:app
 
+if __name__ == "__main__":
+    import uvicorn
 
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
