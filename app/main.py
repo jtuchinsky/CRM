@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from app.database import Base, engine
-from app.routers import contacts, health
+from app.routers import appointments, contacts, health, staff
 
 settings = get_settings()
 
@@ -29,6 +29,8 @@ app = FastAPI(
 # Include routers
 app.include_router(health.router)
 app.include_router(contacts.router, prefix="/api/v1")
+app.include_router(staff.router, prefix="/api/v1")
+app.include_router(appointments.router, prefix="/api/v1")
 
 
 @app.get("/")
