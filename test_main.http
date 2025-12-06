@@ -1,11 +1,59 @@
-# Test your FastAPI endpoints
+# Test your FastAPI CRM endpoints
 
+### Root endpoint
 GET http://127.0.0.1:8000/
 Accept: application/json
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
+### Health check
+GET http://127.0.0.1:8000/health/
 Accept: application/json
+
+###
+
+### Database health check
+GET http://127.0.0.1:8000/health/db
+Accept: application/json
+
+###
+
+### Create a contact
+POST http://127.0.0.1:8000/api/v1/contacts/
+Content-Type: application/json
+
+{
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "email": "jane.smith@example.com",
+  "phone": "555-9876",
+  "company": "Tech Solutions Inc"
+}
+
+###
+
+### List all contacts
+GET http://127.0.0.1:8000/api/v1/contacts/
+Accept: application/json
+
+###
+
+### Get specific contact (change ID as needed)
+GET http://127.0.0.1:8000/api/v1/contacts/1
+Accept: application/json
+
+###
+
+### Create another contact
+POST http://127.0.0.1:8000/api/v1/contacts/
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "555-1234",
+  "company": "Acme Corporation"
+}
 
 ###
