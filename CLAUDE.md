@@ -34,12 +34,22 @@ The project includes `test_main.http` for manual HTTP testing. This file can be 
 
 ### Package Management
 
-```bash
-# Install dependencies
-pip install -r requirements.txt  # (if/when requirements.txt is created)
+The project uses a two-file approach for dependency management:
+- `requirements.in`: High-level dependencies (what you want)
+- `requirements.txt`: Pinned lockfile (exact versions installed)
 
-# Add new packages
+```bash
+# Install all dependencies from lockfile
+pip install -r requirements.txt
+
+# Add a new dependency
+# 1. Add to requirements.in
+# 2. Install and update lockfile
 pip install <package-name>
+pip freeze > requirements.txt
+
+# Update all dependencies to latest versions
+pip install --upgrade -r requirements.in
 pip freeze > requirements.txt
 ```
 
