@@ -56,18 +56,18 @@ git clone https://github.com/jtuchinsky/CRM.git
 cd CRM
 ```
 
-2. Install dependencies with UV:
+1. Install dependencies with UV:
 ```bash
 uv sync
 ```
 
-3. Copy the example environment file and configure:
+1. Copy the example environment file and configure:
 ```bash
 cp .env.example .env
 # Edit .env with your settings
 ```
 
-4. Run database migrations:
+1. Run database migrations:
 ```bash
 uv run alembic upgrade head
 ```
