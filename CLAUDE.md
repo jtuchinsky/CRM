@@ -4,78 +4,271 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a CRM (Customer Relationship Management) system built with FastAPI. The project is in early development stages with a basic FastAPI application structure.
+This is a CRM (Customer Relationship Management) + AI Assistant system built with FastAPI, designed for small offices. The project follows **Clean Architecture** principles with clear separation of concerns.
 
 ## Technology Stack
 
-- **Framework**: FastAPI 0.124.0
-- **Server**: Uvicorn 0.38.0
-- **Python**: 3.12
-- **Validation**: Pydantic 2.12.5
+- **Framework**: FastAPI 0.124.0+
+- **Server**: Uvicorn 0.38.0 (async ASGI)
+- **Database**: SQLAlchemy 2.0+ (async) with Alembic migrations
+- **Validation**: Pydantic 2.12+
+- **Package Manager**: UV (modern Python dependency manager)
+- **Python**: 3.12+
+- **Testing**: pytest with pytest-asyncio
+
+## Architecture
+
+### Clean Architecture Structure
+
+The project follows Clean Architecture (Hexagonal/Ports & Adapters):
+
+```
+app/
+├── main.py                       # FastAPI app + DI wiring
+├── settings.py                   # Configuration (env vars)
+├── api/                          # API Layer (Interface Adapters)
+│   ├── routers/                  # HTTP controllers
+│   └── schemas/                  # Pydantic request/response models
+├── core/                         # Business Logic Layer
+│   ├── domain/                   # Pure business entities
+│   ├── ports/                    # Interfaces (dependency inversion)
+│   └── application/              # Use cases / interactors
+└── adapters/                     # Infrastructure Layer
+    ├── inbound/                  # Webhooks, message handlers
+    └── outbound/                 # DB, external APIs, queues
+        └── db/sqlalchemy/        # SQLAlchemy ORM models
+```
+
+### Dependency Rule
+
+- **Inner layers** (core/domain) → NEVER depend on outer layers
+- **Outer layers** (adapters) → CAN depend on inner layers
+- **All dependencies** point inward toward business logic
+
+See `docs/architecture.md` for detailed documentation.
 
 ## Development Commands
 
 ### Running the Application
 
 ```bash
-# Activate virtual environment
-source .venv/bin/activate
-
 # Run development server with auto-reload
-uvicorn main:app --reload
+uv run uvicorn main:app --reload
 
 # Run on specific host/port
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+uv run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### Testing HTTP Endpoints
+The API will be available at:
+- **API**: http://127.0.0.1:8000
+- **Interactive Docs (Swagger)**: http://127.0.0.1:8000/docs
+- **Alternative Docs (ReDoc)**: http://127.0.0.1:8000/redoc
 
-The project includes `test_main.http` for manual HTTP testing. This file can be used with HTTP client tools in IDEs like PyCharm or VSCode with REST Client extension.
-
-### Package Management
-
-The project uses a two-file approach for dependency management:
-- `requirements.in`: High-level dependencies (what you want)
-- `requirements.txt`: Pinned lockfile (exact versions installed)
+### Testing
 
 ```bash
-# Install all dependencies from lockfile
-pip install -r requirements.txt
+# Run all tests
+uv run pytest
 
-# Add a new dependency
-# 1. Add to requirements.in
-# 2. Install and update lockfile
-pip install <package-name>
-pip freeze > requirements.txt
+# Run with verbose output
+uv run pytest -v
 
-# Update all dependencies to latest versions
-pip install --upgrade -r requirements.in
-pip freeze > requirements.txt
+# Run specific test file
+uv run pytest tests/test_appointments.py
+
+# Run with coverage
+uv run pytest --cov=app
 ```
 
-## Architecture
+### Database Migrations
 
-### Current Structure
+```bash
+# Create a new migration
+uv run alembic revision --autogenerate -m "Description of changes"
 
-- `main.py`: Main FastAPI application entry point with route definitions
-- `test_main.http`: HTTP request examples for testing endpoints
-- `.venv/`: Python virtual environment (not committed to git)
+# Apply migrations
+uv run alembic upgrade head
 
-### Application Entry Point
+# Rollback one migration
+uv run alembic downgrade -1
 
-The FastAPI app is instantiated in `main.py:3` as `app = FastAPI()`. All routes are currently defined in this single file.
+# Show current migration version
+uv run alembic current
+```
 
-### Virtual Environment
+### Package Management (UV)
 
-The project uses a Python virtual environment located in `.venv/`. A duplicate or backup virtual environment structure exists in `CRM/` directory (appears to be a secondary venv, not application code).
+```bash
+# Install dependencies
+uv sync
+
+# Add a production dependency
+uv add package-name
+
+# Add a development dependency
+uv add --dev package-name
+
+# Update all dependencies
+uv sync --upgrade
+
+# Remove a dependency
+uv remove package-name
+```
+
+### Code Quality
+
+```bash
+# Format code with Black
+uv run black .
+
+# Lint with Ruff
+uv run ruff check .
+
+# Type checking with mypy
+uv run mypy app/
+```
 
 ## Current API Endpoints
 
-- `GET /`: Root endpoint returning a hello world message
-- `GET /hello/{name}`: Parameterized greeting endpoint
+### Health Check
+- `GET /health/` - Basic health check
+- `GET /health/db` - Database connectivity check
+
+### Contacts (v1)
+- `POST /api/v1/contacts/` - Create contact
+- `GET /api/v1/contacts/` - List contacts (pagination)
+- `GET /api/v1/contacts/{id}` - Get contact by ID
+
+### Staff (v1)
+- `POST /api/v1/staff/` - Create staff member
+- `GET /api/v1/staff/` - List staff (filter by active, role)
+- `GET /api/v1/staff/{id}` - Get staff by ID
+- `PATCH /api/v1/staff/{id}` - Update staff
+- `DELETE /api/v1/staff/{id}` - Delete staff
+
+### Appointments (v1)
+- `POST /api/v1/appointments/` - Create appointment
+- `GET /api/v1/appointments/` - List appointments (filter by contact, staff, status)
+- `GET /api/v1/appointments/{id}` - Get appointment by ID
+- `PATCH /api/v1/appointments/{id}` - Update appointment
+- `DELETE /api/v1/appointments/{id}` - Delete appointment
+
+## Database
+
+### Models (SQLAlchemy ORM)
+
+Located in `app/adapters/outbound/db/sqlalchemy/`:
+- `contact.py` - Contact information
+- `staff.py` - Staff members
+- `appointment.py` - Appointment scheduling
+- `staff_availability.py` - Staff working hours and time off
+- `reminder.py` - Appointment reminders
+- `base.py` - Base mixins (IDMixin, TimestampMixin)
+
+All models inherit from:
+- `IDMixin`: Provides auto-incrementing `id` field
+- `TimestampMixin`: Provides `created_at` and `updated_at` fields
+
+### Session Management
+
+Database session is managed in `app/adapters/outbound/db/sqlalchemy/session.py`:
+- `Base`: SQLAlchemy declarative base
+- `engine`: Async database engine
+- `AsyncSessionLocal`: Session factory
+- `get_db()`: FastAPI dependency for database sessions
+
+## Development Patterns
+
+### Adding a New Feature
+
+1. **Define domain logic** in `app/core/domain/models/` (pure Python)
+2. **Create repository interface** in `app/core/ports/repositories/`
+3. **Implement repository** in `app/adapters/outbound/db/sqlalchemy/`
+4. **Create use case** in `app/core/application/use_cases/`
+5. **Add Pydantic schemas** in `app/api/schemas/`
+6. **Create router** in `app/api/routers/`
+7. **Write tests** in `tests/`
+8. **Create migration** with `uv run alembic revision --autogenerate`
+
+### Adding a Database Model
+
+1. Create SQLAlchemy model in `app/adapters/outbound/db/sqlalchemy/`
+2. Import model in `app/adapters/outbound/db/sqlalchemy/__init__.py`
+3. Import model in `alembic/env.py` for migration detection
+4. Generate migration: `uv run alembic revision --autogenerate -m "Add model"`
+5. Review and apply migration: `uv run alembic upgrade head`
+6. Create corresponding Pydantic schemas in `app/api/schemas/`
+7. Write tests
+
+### Dependency Injection
+
+FastAPI's `Depends()` is used for dependency injection:
+
+```python
+from fastapi import Depends
+from app.adapters.outbound.db.sqlalchemy.session import get_db
+
+@router.get("/items")
+async def list_items(db: AsyncSession = Depends(get_db)):
+    # Use db session
+    pass
+```
+
+## Testing
+
+### Test Structure
+
+- `tests/conftest.py` - Shared fixtures (test database, client)
+- `tests/test_*.py` - Test files organized by feature
+- All tests use in-memory SQLite for fast execution
+
+### Test Fixtures
+
+- `test_db` - Creates test database with all tables
+- `client` - AsyncClient for making HTTP requests to test API
+
+### Writing Tests
+
+```python
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_create_contact(client: AsyncClient):
+    response = await client.post(
+        "/api/v1/contacts/",
+        json={"first_name": "John", "last_name": "Doe", "email": "john@example.com"}
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["first_name"] == "John"
+```
+
+## Environment Configuration
+
+Configuration is managed in `app/settings.py` using pydantic-settings:
+
+```bash
+# .env file
+DATABASE_URL=sqlite+aiosqlite:///./crm.db
+DATABASE_ECHO=false
+APP_NAME="CRM + AI Assistant"
+APP_VERSION="0.1.0"
+```
+
+## Documentation
+
+- `README.md` - Project overview and setup instructions
+- `docs/architecture.md` - Detailed architecture documentation
+- `docs/C4.md` - C4 model diagrams (Context, Container, Component)
+- `docs/BIG_PICTURE.md` - High-level system overview
+- `test_main.http` - HTTP request examples for manual testing
 
 ## Development Notes
 
 - The server runs on `http://127.0.0.1:8000` by default
 - FastAPI provides automatic interactive API documentation at `/docs` (Swagger UI) and `/redoc` (ReDoc)
-- The project follows async/await patterns for route handlers
+- All routes follow async/await patterns
+- Database operations use SQLAlchemy 2.0 async API
+- Tests run in parallel using pytest-asyncio
+- UV manages dependencies in `pyproject.toml` (no requirements.txt)

@@ -54,6 +54,10 @@ htmlcov/
 .tox/
 .hypothesis/
 
+# Linting & Type Checking
+.ruff_cache/
+.mypy_cache/
+
 # Alembic
 alembic/versions/*.pyc
 

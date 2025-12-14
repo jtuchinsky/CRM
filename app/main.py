@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.config import get_settings
-from app.database import Base, engine
-from app.routers import appointments, contacts, health, staff
+from app.adapters.outbound.db.sqlalchemy.session import Base, engine
+from app.api.routers import appointments, contacts, health, staff
+from app.settings import get_settings
 
 settings = get_settings()
 

@@ -2,7 +2,7 @@ from datetime import datetime, time
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from app.models.staff_availability import AvailabilityType
+from app.adapters.outbound.db.sqlalchemy.staff_availability import AvailabilityType
 
 
 class StaffAvailabilityBase(BaseModel):

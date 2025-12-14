@@ -6,11 +6,17 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.config import get_settings
-from app.database import Base
+from app.adapters.outbound.db.sqlalchemy.session import Base
+from app.settings import get_settings
 
 # Import all models to ensure they're registered with Base.metadata
-from app.models import Appointment, Contact, Reminder, Staff, StaffAvailability  # noqa: F401
+from app.adapters.outbound.db.sqlalchemy import (  # noqa: F401
+    Appointment,
+    Contact,
+    Reminder,
+    Staff,
+    StaffAvailability,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

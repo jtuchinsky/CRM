@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
-from app.models.appointment import Appointment, AppointmentStatus
-from app.schemas.appointment import AppointmentCreate, AppointmentResponse, AppointmentUpdate
+from app.adapters.outbound.db.sqlalchemy.appointment import Appointment, AppointmentStatus
+from app.adapters.outbound.db.sqlalchemy.session import get_db
+from app.api.schemas.appointment import AppointmentCreate, AppointmentResponse, AppointmentUpdate
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 

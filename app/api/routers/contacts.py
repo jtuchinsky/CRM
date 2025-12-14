@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
-from app.models.contact import Contact
-from app.schemas.contact import ContactCreate, ContactResponse, ContactUpdate
+from app.adapters.outbound.db.sqlalchemy.contact import Contact
+from app.adapters.outbound.db.sqlalchemy.session import get_db
+from app.api.schemas.contact import ContactCreate, ContactResponse, ContactUpdate
 
 router = APIRouter(prefix="/contacts", tags=["Contacts"])
 

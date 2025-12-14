@@ -1,8 +1,8 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.database import Base
-from app.models.base import IDMixin, TimestampMixin
+from app.adapters.outbound.db.sqlalchemy.base import IDMixin, TimestampMixin
+from app.adapters.outbound.db.sqlalchemy.session import Base
 
 
 class Contact(Base, IDMixin, TimestampMixin):

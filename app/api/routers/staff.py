@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
-from app.models.staff import Staff
-from app.schemas.staff import StaffCreate, StaffResponse, StaffUpdate
+from app.adapters.outbound.db.sqlalchemy.session import get_db
+from app.adapters.outbound.db.sqlalchemy.staff import Staff
+from app.api.schemas.staff import StaffCreate, StaffResponse, StaffUpdate
 
 router = APIRouter(prefix="/staff", tags=["Staff"])
 

@@ -25,17 +25,51 @@ A modern CRM system built with FastAPI, designed for small offices with AI-power
 
 ## Project Structure
 
+This project follows **Clean Architecture** principles with clear separation of concerns:
+
 ```
 CRM/
 ├── app/                          # Main application package
-│   ├── config.py                 # Settings management
-│   ├── database.py               # Database configuration
-│   ├── main.py                   # FastAPI app instance
-│   ├── models/                   # SQLAlchemy ORM models
-│   ├── schemas/                  # Pydantic schemas
-│   └── routers/                  # API route handlers
+│   ├── main.py                   # FastAPI app instance + DI wiring
+│   ├── settings.py               # App configuration and settings
+│   ├── api/                      # API Layer (Interface Adapters)
+│   │   ├── routers/              # HTTP controllers (endpoints)
+│   │   │   ├── contacts.py
+│   │   │   ├── staff.py
+│   │   │   ├── appointments.py
+│   │   │   └── health.py
+│   │   └── schemas/              # Pydantic models (API boundary)
+│   │       ├── contact.py
+│   │       ├── staff.py
+│   │       ├── appointment.py
+│   │       └── staff_availability.py
+│   ├── core/                     # Business Logic Layer
+│   │   ├── domain/               # Enterprise business rules
+│   │   │   ├── models/           # Domain entities (pure Python)
+│   │   │   └── value_objects/    # Immutable domain values
+│   │   ├── ports/                # Interfaces (dependency inversion)
+│   │   │   ├── repositories/     # Repository interfaces
+│   │   │   └── services/         # Service interfaces
+│   │   └── application/          # Use cases / interactors
+│   │       ├── use_cases/        # Business use cases
+│   │       ├── dto/              # Data transfer objects
+│   │       └── policies/         # Business policies/rules
+│   └── adapters/                 # Infrastructure Layer
+│       ├── inbound/              # Inbound adapters
+│       │   └── email/            # Email webhook handlers
+│       ├── outbound/             # Outbound adapters
+│       │   ├── db/sqlalchemy/    # SQLAlchemy ORM implementation
+│       │   │   ├── session.py    # DB engine + session factory
+│       │   │   ├── base.py       # Base mixins (ID, Timestamp)
+│       │   │   └── *.py          # ORM models
+│       │   └── providers/        # External service adapters
+│       └── messaging/            # Message queue adapters
 ├── alembic/                      # Database migrations
 ├── tests/                        # Test suite
+├── docs/                         # Documentation
+│   ├── architecture.md           # Architecture documentation
+│   ├── C4.md                     # C4 model diagrams
+│   └── BIG_PICTURE.md            # High-level system overview
 ├── main.py                       # Application entry point
 ├── pyproject.toml                # UV project configuration
 └── .env                          # Environment variables (not in git)
@@ -126,6 +160,20 @@ uv run mypy app/
 - `GET /api/v1/contacts/` - List all contacts (with pagination)
 - `GET /api/v1/contacts/{id}` - Get a specific contact
 
+### Staff (v1)
+- `POST /api/v1/staff/` - Create a new staff member
+- `GET /api/v1/staff/` - List all staff (filter by active status, role)
+- `GET /api/v1/staff/{id}` - Get a specific staff member
+- `PATCH /api/v1/staff/{id}` - Update staff details
+- `DELETE /api/v1/staff/{id}` - Delete staff member
+
+### Appointments (v1)
+- `POST /api/v1/appointments/` - Create a new appointment
+- `GET /api/v1/appointments/` - List appointments (filter by contact, staff, status)
+- `GET /api/v1/appointments/{id}` - Get a specific appointment
+- `PATCH /api/v1/appointments/{id}` - Update appointment details
+- `DELETE /api/v1/appointments/{id}` - Delete appointment
+
 ## Database
 
 ### SQLite (Development)
@@ -170,14 +218,35 @@ uv sync --upgrade
 
 ### Project Architecture
 
-This project follows a production-ready architecture with clear separation of concerns:
+This project follows **Clean Architecture** (aka Hexagonal/Ports & Adapters) principles:
 
-- **Models** (app/models/): SQLAlchemy ORM models defining database tables
-- **Schemas** (app/schemas/): Pydantic models for request/response validation
-- **Routers** (app/routers/): API endpoint handlers organized by domain
-- **Database** (app/database.py): SQLAlchemy engine and session management
+#### Layers (Dependency Rule: Inner → Outer)
 
-All models inherit from base mixins providing common fields (id, created_at, updated_at).
+1. **Core/Domain Layer** (`app/core/`)
+   - **Domain Models**: Pure Python business entities (no framework dependencies)
+   - **Value Objects**: Immutable domain values (Email, Phone, etc.)
+   - **Ports**: Interfaces for repositories and services (dependency inversion)
+   - **Use Cases**: Business logic orchestration (application layer)
+   - **Policies**: Business rules and decision logic
+
+2. **API Layer** (`app/api/`)
+   - **Routers**: HTTP controllers (FastAPI endpoint handlers)
+   - **Schemas**: Pydantic models for request/response validation (API boundary)
+   - Handles HTTP concerns, authentication, and API versioning
+
+3. **Adapters Layer** (`app/adapters/`)
+   - **Inbound**: Webhooks, message handlers, scheduled jobs
+   - **Outbound**: Database (SQLAlchemy ORM), external APIs, message queues
+   - Implements interfaces defined in `core/ports/`
+
+#### Key Principles
+
+- **Dependency Inversion**: Core logic depends on abstractions (ports), not implementations
+- **Single Responsibility**: Each layer has a clear purpose
+- **Testability**: Business logic is isolated and easy to test
+- **Flexibility**: Infrastructure can be swapped without changing business logic
+
+See [`docs/architecture.md`](docs/architecture.md) for detailed architecture documentation.
 
 ## Contributing
 

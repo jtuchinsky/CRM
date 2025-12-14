@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from app.models.appointment import AppointmentStatus
+from app.adapters.outbound.db.sqlalchemy.appointment import AppointmentStatus
 
 
 class AppointmentBase(BaseModel):
