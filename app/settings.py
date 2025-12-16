@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
+    # AI / Email Intake
+    ai_provider: str = "openai"  # "openai" or "anthropic"
+    ai_model: str = "gpt-4o-mini"  # or "claude-3-5-sonnet-20241022"
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False
     )

@@ -13,6 +13,7 @@ from app.settings import get_settings
 from app.adapters.outbound.db.sqlalchemy import (  # noqa: F401
     Appointment,
     Contact,
+    EmailIntake,
     Reminder,
     Staff,
     StaffAvailability,

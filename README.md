@@ -20,6 +20,9 @@ A modern CRM system built with FastAPI, designed for small offices with AI-power
 - **Database**: SQLAlchemy 2.0+ (async)
 - **Migrations**: Alembic
 - **Validation**: Pydantic 2.12+
+- **AI/LLM**: OpenAI & Anthropic APIs
+- **Email Processing**: BeautifulSoup4, lxml
+- **Retry Logic**: Tenacity
 - **Package Manager**: UV
 - **Python**: 3.12+
 
@@ -37,12 +40,16 @@ CRM/
 │   │   │   ├── contacts.py
 │   │   │   ├── staff.py
 │   │   │   ├── appointments.py
+│   │   │   ├── email_intake.py   # AI-powered email processing
 │   │   │   └── health.py
-│   │   └── schemas/              # Pydantic models (API boundary)
-│   │       ├── contact.py
-│   │       ├── staff.py
-│   │       ├── appointment.py
-│   │       └── staff_availability.py
+│   │   ├── schemas/              # Pydantic models (API boundary)
+│   │   │   ├── contact.py
+│   │   │   ├── staff.py
+│   │   │   ├── appointment.py
+│   │   │   ├── email_intake.py
+│   │   │   └── staff_availability.py
+│   │   └── dependencies/         # Dependency injection
+│   │       └── intake_deps.py    # Email intake DI wiring
 │   ├── core/                     # Business Logic Layer
 │   │   ├── domain/               # Enterprise business rules
 │   │   │   ├── models/           # Domain entities (pure Python)
@@ -58,12 +65,25 @@ CRM/
 │       ├── inbound/              # Inbound adapters
 │       │   └── email/            # Email webhook handlers
 │       ├── outbound/             # Outbound adapters
-│       │   ├── db/sqlalchemy/    # SQLAlchemy ORM implementation
-│       │   │   ├── session.py    # DB engine + session factory
-│       │   │   ├── base.py       # Base mixins (ID, Timestamp)
-│       │   │   └── *.py          # ORM models
-│       │   └── providers/        # External service adapters
+│       │   ├── db/
+│       │   │   ├── sqlalchemy/   # SQLAlchemy ORM implementation
+│       │   │   │   ├── session.py    # DB engine + session factory
+│       │   │   │   ├── base.py       # Base mixins (ID, Timestamp)
+│       │   │   │   ├── email_intake.py  # Email intake ORM model
+│       │   │   │   └── *.py          # Other ORM models
+│       │   │   └── repositories/ # Repository implementations
+│       │   │       └── intake_repository.py
+│       │   ├── email/            # Email processing adapters
+│       │   │   └── normalizer.py # Email cleaning & normalization
+│       │   ├── ai/               # AI service adapters
+│       │   │   └── llm_intake_engine.py  # OpenAI/Anthropic integration
+│       │   ├── crm/              # CRM context adapters
+│       │   │   └── context_lookup.py  # Contact/interaction lookup
+│       │   └── providers/        # External service adapters (stubs)
+│       │       ├── stub_task_service.py
+│       │       └── stub_pipeline_service.py
 │       └── messaging/            # Message queue adapters
+│           └── stub_event_bus.py # Event publishing (stub)
 ├── alembic/                      # Database migrations
 ├── tests/                        # Test suite
 ├── docs/                         # Documentation
@@ -105,6 +125,24 @@ cp .env.example .env
 ```bash
 uv run alembic upgrade head
 ```
+
+### AI Configuration (Email Intake Feature)
+
+To enable the AI-powered Email Intake feature, configure your AI provider in `.env`:
+
+```env
+# AI / Email Intake
+AI_PROVIDER=openai              # "openai" or "anthropic"
+AI_MODEL=gpt-4o-mini            # or "claude-3-5-sonnet-20241022"
+OPENAI_API_KEY=sk-...           # Your OpenAI API key
+ANTHROPIC_API_KEY=sk-ant-...    # Your Anthropic API key
+```
+
+**Features:**
+- AI-powered email analysis (summary, intent classification, entity extraction)
+- Automatic task and deal recommendations
+- Confidence-based auto-approval (threshold: 0.85)
+- Human review workflow for low-confidence emails
 
 ## Running the Application
 
@@ -173,6 +211,12 @@ uv run mypy app/
 - `GET /api/v1/appointments/{id}` - Get a specific appointment
 - `PATCH /api/v1/appointments/{id}` - Update appointment details
 - `DELETE /api/v1/appointments/{id}` - Delete appointment
+
+### Email Intake (v1) - AI-Powered
+- `POST /api/v1/email-intakes/process` - Process raw email through AI pipeline
+- `GET /api/v1/email-intakes/pending` - List emails pending human review
+- `GET /api/v1/email-intakes/{id}` - Get detailed intake analysis
+- `POST /api/v1/email-intakes/{id}/decision` - Submit approval/rejection decision
 
 ## Database
 
