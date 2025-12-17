@@ -224,6 +224,82 @@ Submit user decision on AI recommendations.
 **Response (200 OK):**
 Updated IntakeRecord with status changed to `user_approved` or `rejected`.
 
+## Webhook Endpoints
+
+These endpoints receive emails automatically from email service providers. They parse provider-specific formats and process them through the same AI intake pipeline.
+
+### POST /api/v1/webhooks/email/sendgrid
+
+Receive email from SendGrid Inbound Parse webhook.
+
+**Setup:**
+1. Go to Settings → Inbound Parse in SendGrid
+2. Add webhook URL: `https://your-domain.com/api/v1/webhooks/email/sendgrid`
+3. Configure domain/subdomain for receiving emails
+4. (Optional) Set `SENDGRID_WEBHOOK_SECRET` for custom header validation
+
+**Authentication:** Optional custom header validation via `X-SendGrid-Validation` header
+
+**Payload:** SendGrid sends `multipart/form-data` with fields:
+- `from`: sender email
+- `to`: recipient email
+- `subject`: email subject
+- `text`: plain text body
+- `html`: HTML body
+- `headers`: JSON string of email headers
+
+### POST /api/v1/webhooks/email/mailgun
+
+Receive email from Mailgun Routes webhook with HMAC signature validation.
+
+**Setup:**
+1. Go to Sending → Routes in Mailgun
+2. Create route with action: `forward("https://your-domain.com/api/v1/webhooks/email/mailgun")`
+3. Set `MAILGUN_WEBHOOK_SECRET` to your Mailgun API key
+4. Set priority and filter expression
+
+**Authentication:** Required HMAC SHA256 signature validation using:
+- `timestamp`: Unix timestamp
+- `token`: Random string
+- `signature`: HMAC SHA256 of (timestamp + token)
+
+**Payload:** Mailgun sends `multipart/form-data` with fields:
+- `sender` or `from`: sender email
+- `recipient` or `To`: recipient email
+- `subject` or `Subject`: email subject
+- `stripped-text` or `body-plain`: plain text (quoted parts removed)
+- `stripped-html` or `body-html`: HTML body
+- `timestamp`, `token`, `signature`: verification fields
+
+### POST /api/v1/webhooks/email/generic
+
+Generic webhook endpoint for testing and custom integrations.
+
+**Setup:**
+1. Set `GENERIC_WEBHOOK_SECRET` to a random token
+2. Send emails to `https://your-domain.com/api/v1/webhooks/email/generic`
+3. Include `X-Webhook-Token` header with the secret
+
+**Authentication:** Token-based via `X-Webhook-Token` header
+
+**Payload:** JSON body in standard format:
+```json
+{
+  "from": "sender@example.com",
+  "to": ["recipient@example.com"],
+  "subject": "Email subject",
+  "text": "Plain text body",
+  "html": "<p>HTML body</p>",
+  "date": "2025-12-17T12:00:00Z",
+  "message_id": "<unique-id@example.com>",
+  "in_reply_to": "<previous-id@example.com>",  // optional
+  "references": ["<ref1@example.com>"]         // optional
+}
+```
+
+**Response (201 Created):**
+All webhook endpoints return the same response as `POST /api/v1/email-intakes/process` - an `IntakeDetailResponse` with AI analysis and recommendations.
+
 ## Configuration
 
 ### Environment Variables (.env)
@@ -234,6 +310,11 @@ AI_PROVIDER=openai              # "openai" or "anthropic"
 AI_MODEL=gpt-4o-mini            # or "claude-3-5-sonnet-20241022"
 OPENAI_API_KEY=sk-...           # Your OpenAI API key
 ANTHROPIC_API_KEY=sk-ant-...    # Your Anthropic API key
+
+# Webhook Secrets (for automatic email reception)
+SENDGRID_WEBHOOK_SECRET=        # Optional: Custom header validation for SendGrid
+MAILGUN_WEBHOOK_SECRET=         # Required: Mailgun API key for signature validation
+GENERIC_WEBHOOK_SECRET=         # Required: Token for generic webhook authentication
 ```
 
 ### ConfidencePolicy

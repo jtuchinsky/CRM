@@ -142,7 +142,24 @@ ANTHROPIC_API_KEY=sk-ant-...    # Your Anthropic API key
 - AI-powered email analysis (summary, intent classification, entity extraction)
 - Automatic task and deal recommendations
 - Confidence-based auto-approval (threshold: 0.85)
-- Human review workflow for low-confidence emails
+
+### Webhook Configuration (Email Reception)
+
+To receive emails automatically from email providers, configure webhook secrets in `.env`:
+
+```env
+# Webhook Secrets (for email providers)
+SENDGRID_WEBHOOK_SECRET=         # Optional: custom header validation
+MAILGUN_WEBHOOK_SECRET=          # Required: Mailgun API key for signature validation
+GENERIC_WEBHOOK_SECRET=          # Required: Token for X-Webhook-Token header
+```
+
+**Supported Email Providers:**
+- **SendGrid** - Inbound Parse webhook
+- **Mailgun** - Routes webhook with signature validation
+- **Generic** - Custom integrations with token authentication
+
+See [Email Intake Documentation](docs/Email_Intake.md) for detailed webhook setup instructions.
 
 ## Running the Application
 
@@ -213,10 +230,15 @@ uv run mypy app/
 - `DELETE /api/v1/appointments/{id}` - Delete appointment
 
 ### Email Intake (v1) - AI-Powered
-- `POST /api/v1/email-intakes/process` - Process raw email through AI pipeline
+- `POST /api/v1/email-intakes/process` - Process raw email through AI pipeline (manual)
 - `GET /api/v1/email-intakes/pending` - List emails pending human review
 - `GET /api/v1/email-intakes/{id}` - Get detailed intake analysis
 - `POST /api/v1/email-intakes/{id}/decision` - Submit approval/rejection decision
+
+### Webhooks (v1) - Email Reception
+- `POST /api/v1/webhooks/email/sendgrid` - Receive email from SendGrid Inbound Parse
+- `POST /api/v1/webhooks/email/mailgun` - Receive email from Mailgun Routes
+- `POST /api/v1/webhooks/email/generic` - Receive email in generic format (testing/custom)
 
 ## Database
 

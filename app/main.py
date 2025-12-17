@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.adapters.outbound.db.sqlalchemy.session import Base, engine
-from app.api.routers import appointments, contacts, email_intake, health, staff
+from app.api.routers import appointments, contacts, email_intake, health, staff, webhooks
 from app.settings import get_settings
 
 settings = get_settings()
@@ -32,6 +32,7 @@ app.include_router(contacts.router, prefix="/api/v1")
 app.include_router(staff.router, prefix="/api/v1")
 app.include_router(appointments.router, prefix="/api/v1")
 app.include_router(email_intake.router, prefix="/api/v1")
+app.include_router(webhooks.router, prefix="/api/v1")
 
 
 @app.get("/")

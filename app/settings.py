@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     anthropic_api_key: str = ""
 
+    # Webhook Secrets (for email providers)
+    sendgrid_webhook_secret: str = ""  # Optional: custom header validation
+    mailgun_webhook_secret: str = ""   # Required: Mailgun API key for signature validation
+    generic_webhook_secret: str = ""    # Required: Token for X-Webhook-Token header
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False
     )
