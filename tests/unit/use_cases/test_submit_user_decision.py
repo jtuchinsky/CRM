@@ -321,14 +321,14 @@ class TestSubmitUserDecisionUseCase:
             decided_by="tester@company.com",
         )
 
-        # Assert - verify decision dict structure
+        # Assert - verify decision object structure
         call_args = self.mock_repository.update_decision.call_args
         assert call_args[0][0] == 1  # intake_id
-        decision_dict = call_args[0][1]
+        decision = call_args[0][1]  # Now an IntakeDecision object, not dict
 
-        assert decision_dict["approved_task_indices"] == [0]
-        assert decision_dict["approved_deal_indices"] == [0]
-        assert len(decision_dict["created_tasks"]) == 1
-        assert len(decision_dict["created_deals"]) == 1
-        assert decision_dict["decided_by"] == "tester@company.com"
-        assert "decided_at" in decision_dict
+        assert decision.approved_task_indices == [0]
+        assert decision.approved_deal_indices == [0]
+        assert len(decision.created_tasks) == 1
+        assert len(decision.created_deals) == 1
+        assert decision.decided_by == "tester@company.com"
+        assert decision.decided_at is not None
