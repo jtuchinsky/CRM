@@ -210,8 +210,8 @@ async def submit_decision(
     try:
         updated_intake = await use_case.execute(
             intake_id=intake_id,
-            approved_tasks=request.approved_task_indices,
-            approved_deals=request.approved_deal_indices,
+            approved_task_indices=request.approved_task_indices,
+            approved_deal_indices=request.approved_deal_indices,
         )
         return _to_detail_response(updated_intake)
     except ValueError as e:

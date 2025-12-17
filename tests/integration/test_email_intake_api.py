@@ -1,12 +1,13 @@
 """Integration tests for Email Intake API endpoints."""
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client():
     """Create async test client."""
     transport = ASGITransport(app=app)

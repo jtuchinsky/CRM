@@ -71,9 +71,9 @@ class EmailNormalizer(EmailNormalizerPort):
             references=raw_email.get("references", []) if raw_email.get("references") else None,
         )
 
-        # Extract and clean body
-        raw_html = raw_email.get("body_html")
-        raw_text = raw_email.get("body_text")
+        # Extract and clean body (support multiple field name formats)
+        raw_html = raw_email.get("body_html") or raw_email.get("html")
+        raw_text = raw_email.get("body_text") or raw_email.get("text")
 
         normalized_text = await self._clean_body(raw_html, raw_text)
 
