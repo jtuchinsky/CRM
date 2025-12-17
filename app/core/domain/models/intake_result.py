@@ -54,6 +54,9 @@ class IntakeDecision:
     approved_deal_indices: list[int] = field(default_factory=list)
     rejected_task_indices: list[int] = field(default_factory=list)
     rejected_deal_indices: list[int] = field(default_factory=list)
+    created_tasks: list[dict] = field(default_factory=list)  # Created task records from stub service
+    created_deals: list[dict] = field(default_factory=list)  # Created deal records from stub service
+    notes: str | None = None
     decided_at: datetime | None = None
     decided_by: str | None = None  # User ID or email
 

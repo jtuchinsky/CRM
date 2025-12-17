@@ -3,6 +3,7 @@
 import json
 from dataclasses import asdict
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +20,6 @@ from app.core.domain.value_objects.ai_result import Confidence, ExtractedEntity,
 from app.core.domain.value_objects.email_metadata import EmailAddress, EmailBody, EmailHeaders
 from app.core.domain.value_objects.recommendation import (
     DealRecommendation,
-    RecommendationStatus,
     TaskRecommendation,
 )
 from app.core.ports.repositories.intake_repository_port import IntakeRepositoryPort
@@ -136,9 +136,15 @@ class IntakeRepository(IntakeRepositoryPort):
         if not orm_model:
             raise ValueError(f"Intake record not found: {intake_id}")
 
-        # Update status and decision
-        orm_model.status = decision.status.value
-        orm_model.decision_json = json.dumps(asdict(decision))
+        # Determine status based on decision
+        if decision.has_approvals():
+            orm_model.status = "user_approved"
+        else:
+            orm_model.status = "rejected"
+
+        # Serialize decision with datetime handling
+        decision_dict = self._serialize_datetime(asdict(decision))
+        orm_model.decision_json = json.dumps(decision_dict)
         orm_model.updated_at = datetime.now()
 
         await self.db.flush()
@@ -147,6 +153,24 @@ class IntakeRepository(IntakeRepositoryPort):
         return self._to_domain(orm_model)
 
     # --- Conversion Methods ---
+
+    def _serialize_datetime(self, obj: Any) -> Any:
+        """
+        Recursively convert datetime objects to ISO format strings for JSON serialization.
+
+        Args:
+            obj: Object that may contain datetime instances
+
+        Returns:
+            Object with datetime instances converted to ISO strings
+        """
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, dict):
+            return {k: self._serialize_datetime(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._serialize_datetime(item) for item in obj]
+        return obj
 
     def _to_orm(self, intake: IntakeRecord) -> EmailIntake:
         """
@@ -181,15 +205,16 @@ class IntakeRepository(IntakeRepositoryPort):
 
         decision_json = None
         if intake.decision:
-            decision_json = json.dumps(asdict(intake.decision))
+            decision_dict = self._serialize_datetime(asdict(intake.decision))
+            decision_json = json.dumps(decision_dict)
 
         return EmailIntake(
             id=intake.id,
             status=intake.status,
-            raw_email_json=json.dumps(intake.raw_email) if intake.raw_email else "{}",
-            normalized_email_json=json.dumps(normalized_email_dict),
-            ai_result_json=json.dumps(ai_result_dict),
-            recommendations_json=json.dumps(recommendations_dict),
+            raw_email_json=json.dumps(getattr(intake, 'raw_email', {})),
+            normalized_email_json=json.dumps(self._serialize_datetime(normalized_email_dict)),
+            ai_result_json=json.dumps(self._serialize_datetime(ai_result_dict)),
+            recommendations_json=json.dumps(self._serialize_datetime(recommendations_dict)),
             decision_json=decision_json,
             sender_email=intake.normalized_email.from_address.email,
             subject=intake.normalized_email.headers.subject,
@@ -209,8 +234,7 @@ class IntakeRepository(IntakeRepositoryPort):
             IntakeRecord domain entity
         """
         # Deserialize JSON to domain objects
-        raw_email = json.loads(orm_model.raw_email_json)
-
+        # Note: raw_email is stored but not part of domain entity
         normalized_dict = json.loads(orm_model.normalized_email_json)
         normalized_email = NormalizedEmail(
             from_address=EmailAddress(**normalized_dict["from_address"]),
@@ -238,18 +262,19 @@ class IntakeRepository(IntakeRepositoryPort):
         if orm_model.decision_json:
             decision_dict = json.loads(orm_model.decision_json)
             decision = IntakeDecision(
-                status=RecommendationStatus(decision_dict["status"]),
-                approved_task_indices=decision_dict["approved_task_indices"],
-                approved_deal_indices=decision_dict["approved_deal_indices"],
+                approved_task_indices=decision_dict.get("approved_task_indices", []),
+                approved_deal_indices=decision_dict.get("approved_deal_indices", []),
+                rejected_task_indices=decision_dict.get("rejected_task_indices", []),
+                rejected_deal_indices=decision_dict.get("rejected_deal_indices", []),
                 created_tasks=decision_dict.get("created_tasks", []),
                 created_deals=decision_dict.get("created_deals", []),
                 notes=decision_dict.get("notes"),
                 decided_at=datetime.fromisoformat(decision_dict["decided_at"]) if decision_dict.get("decided_at") else None,
+                decided_by=decision_dict.get("decided_by"),
             )
 
         return IntakeRecord(
             id=orm_model.id,
-            raw_email=raw_email,
             normalized_email=normalized_email,
             ai_result=ai_result,
             recommendations=recommendations,

@@ -110,20 +110,13 @@ class SubmitUserDecisionUseCase:
         decision = IntakeDecision(
             approved_task_indices=approved_task_indices,
             approved_deal_indices=approved_deal_indices,
+            created_tasks=created_tasks,
+            created_deals=created_deals,
             decided_at=datetime.now(),
             decided_by=decided_by,
         )
 
-        decision_dict = {
-            "approved_task_indices": approved_task_indices,
-            "approved_deal_indices": approved_deal_indices,
-            "created_tasks": created_tasks,
-            "created_deals": created_deals,
-            "decided_at": decision.decided_at.isoformat(),
-            "decided_by": decided_by,
-        }
-
-        updated = await self.repository.update_decision(intake_id, decision_dict)
+        updated = await self.repository.update_decision(intake_id, decision)
 
         # Step 5: Publish domain event
         event = UserDecisionSubmitted(
