@@ -6,10 +6,10 @@ This diagram illustrates the Email Intake Component following Clean Architecture
 
 ## Implementation Status
 
-### ✅ Implemented (Phases 1-5)
+### ✅ Implemented (Phases 1-6)
 - **Domain Layer**: All entities, value objects, and policies
 - **Application Layer**: Both use cases (ProcessInboundEmail, SubmitUserDecision)
-- **Ports**: All 8 port interfaces defined
+- **Ports**: All 9 port interfaces defined (including WebhookParserPort)
 - **Adapters**:
   - ✅ EmailNormalizer (HTML cleaning, metadata extraction)
   - ✅ CRMContextLookup (SQLAlchemy-based)
@@ -18,10 +18,14 @@ This diagram illustrates the Email Intake Component following Clean Architecture
   - ✅ StubEventBus (logger-based)
   - ✅ StubTaskService (placeholder)
   - ✅ StubPipelineService (placeholder)
-- **API**: 4 REST endpoints via FastAPI router
+  - ✅ SendGridWebhookParser (Inbound Parse)
+  - ✅ MailgunWebhookParser (Routes with HMAC validation)
+  - ✅ GenericWebhookParser (Testing/custom integrations)
+- **API**: 7 REST endpoints via FastAPI routers
+  - 4 Email Intake endpoints (manual processing)
+  - 3 Webhook endpoints (automatic reception)
 
-### ⏳ Planned (Phases 6-8)
-- **WebhookController**: Email provider webhook receiver
+### ⏳ Planned (Phases 7-8)
 - **Real Task Client**: Integration with Task Service
 - **Real Deal Client**: Integration with Pipeline Service
 - **Real Event Bus**: RabbitMQ/Redis implementation

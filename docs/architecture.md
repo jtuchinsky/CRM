@@ -177,6 +177,8 @@ class CheckConflictsUseCase:
 - `app/api/routers/contacts.py` - Contact API endpoints
 - `app/api/routers/staff.py` - Staff API endpoints
 - `app/api/routers/appointments.py` - Appointment API endpoints
+- `app/api/routers/email_intake.py` - Email Intake AI processing endpoints
+- `app/api/routers/webhooks.py` - Email webhook receivers (SendGrid, Mailgun, Generic)
 - `app/api/routers/health.py` - Health check endpoints
 
 **Presenters (Schemas):**
@@ -184,16 +186,25 @@ class CheckConflictsUseCase:
 - `app/api/schemas/staff.py` - Staff DTOs
 - `app/api/schemas/appointment.py` - Appointment DTOs with validation
 - `app/api/schemas/staff_availability.py` - Availability DTOs
+- `app/api/schemas/email_intake.py` - Email Intake DTOs (requests/responses)
 
-**Gateways (Future Repository Implementations):**
-- `app/adapters/outbound/db/sqlalchemy/contact_repository.py` - Contact repository impl
-- `app/adapters/outbound/db/sqlalchemy/appointment_repository.py` - Appointment repository impl
-- `app/adapters/outbound/db/sqlalchemy/uow.py` - Unit of Work implementation
+**Gateways (Repository Implementations):**
+- `app/adapters/outbound/db/repositories/intake_repository.py` - Email intake repository (JSON serialization)
+- `app/adapters/outbound/db/sqlalchemy/uow.py` - Unit of Work implementation (future)
 - `app/adapters/outbound/db/sqlalchemy/session.py` - Database session management
 
-**Inbound Adapters (Future):**
-- `app/adapters/inbound/email/gmail_webhook_handler.py` - Gmail webhook processing
-- `app/adapters/messaging/queue_consumer.py` - Message queue consumer
+**Inbound Adapters (Implemented):**
+- `app/adapters/inbound/webhooks/sendgrid_parser.py` - SendGrid Inbound Parse handler
+- `app/adapters/inbound/webhooks/mailgun_parser.py` - Mailgun Routes handler (HMAC validation)
+- `app/adapters/inbound/webhooks/generic_parser.py` - Generic webhook handler (testing/custom)
+
+**Outbound Adapters (Email Processing):**
+- `app/adapters/outbound/email/normalizer.py` - Email normalization (HTML cleaning, metadata)
+- `app/adapters/outbound/crm/context_lookup.py` - CRM context lookup (contacts, interactions)
+- `app/adapters/outbound/ai/llm_intake_engine.py` - AI analysis (OpenAI/Anthropic)
+- `app/adapters/outbound/providers/stub_task_service.py` - Task creation stub
+- `app/adapters/outbound/providers/stub_pipeline_service.py` - Deal creation stub
+- `app/adapters/messaging/stub_event_bus.py` - Event publishing stub
 
 **Characteristics:**
 - Converts data formats (HTTP → Domain, Domain → Database)
