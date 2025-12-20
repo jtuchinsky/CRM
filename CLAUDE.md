@@ -79,6 +79,30 @@ Webhook → Parser (inbound adapter) → Use Case →
   └→ Event Bus (outbound adapter)
 ```
 
+## Quick Reference
+
+Most common commands for day-to-day development:
+
+```bash
+# Setup
+uv sync                                          # Install dependencies
+uv run alembic upgrade head                      # Apply migrations
+
+# Development
+uv run uvicorn main:app --reload                 # Run dev server
+uv run pytest                                    # Run all tests
+uv run pytest -v tests/integration/              # Run integration tests only
+uv run pytest -v tests/unit/                     # Run unit tests only
+
+# Database
+uv run alembic revision --autogenerate -m "msg"  # Create migration
+uv run alembic upgrade head                      # Apply migrations
+
+# Code Quality
+uv run black .                                   # Format code
+uv run ruff check .                              # Lint code
+```
+
 ## Development Commands
 
 ### Running the Application
@@ -90,6 +114,8 @@ uv run uvicorn main:app --reload
 # Run on specific host/port
 uv run uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
+
+**Note:** The entry point is `main.py` in the project root directory, which imports the FastAPI app from `app/main.py`.
 
 The API will be available at:
 - **API**: http://127.0.0.1:8000
@@ -108,8 +134,17 @@ uv run pytest -v
 # Run specific test file
 uv run pytest tests/test_appointments.py
 
+# Run only unit tests (business logic, mocked dependencies)
+uv run pytest tests/unit/
+
+# Run only integration tests (API endpoints, with test database)
+uv run pytest tests/integration/
+
 # Run with coverage
 uv run pytest --cov=app
+
+# Run specific test by name pattern
+uv run pytest -k "test_high_confidence"
 ```
 
 ### Database Migrations
